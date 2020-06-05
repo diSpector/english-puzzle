@@ -1,5 +1,6 @@
-// import App from '@modules/app';
-// import appConfig from '@settings/appConfig';
+import App from '@modules/app';
+import appConfig from '@settings/appConfig';
+import apiConfig from '@settings/apiConfig';
 // import apiConfig from '@settings/apiConfig';
 // import imagesConfig from '@settings/imagesConfig';
 // import errorsConfig from '@settings/errorsConfig';
@@ -9,6 +10,12 @@ import '../css/style.css';
 import '../css/login.css';
 import '../css/start.css';
 import '../css/game.css';
+
+const app = new App(
+  appConfig.obj,
+  apiConfig.obj
+);
+app.init();
 
 // const app = new App(
 //   appConfig.obj,

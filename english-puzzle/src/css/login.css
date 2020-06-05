@@ -35,7 +35,7 @@
 .form__input {
     width: 100%;
     margin-bottom: 30px;
-    height: 40px;
+    /* height: 40px; */
     position: relative;
 }
 
@@ -106,7 +106,7 @@
     font-size: 1.5rem;
 }
 
-.login__error{
+.login__error, .register__error{
     margin-top: 10px;
     text-align: center;
 }
