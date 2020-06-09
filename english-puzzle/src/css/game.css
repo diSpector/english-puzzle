@@ -8,5 +8,262 @@
     height: 100vh;
     padding-top: 300px;
     box-sizing: border-box;
-    color: white;
+    color: black;
+    padding: 100px;
 }
+
+.field {
+    background-color: white;
+    border-radius: 7px;
+    padding: 20px;
+    font-size: 1.4rem;
+    box-sizing: border-box
+}
+
+.level__title, .level__current, .page__title, .page__current {
+    padding: 6px 4px;
+}
+
+.menu {
+    display: flex;
+    justify-content: space-between;
+}
+
+.controls {
+    display: flex;
+}
+
+.menu__level, .menu__page{
+    display: flex;
+}
+
+.level__list, .page__list {
+    position: relative;
+}
+
+.level__list:hover, .page__list:hover {
+    cursor: pointer;
+}
+
+.level__current, .page__current {
+    width: 50px;
+    text-align: center;
+    position: relative;
+    border: 1px solid black;
+}
+
+.level__current:hover, .page__current:hover{
+    box-shadow: 0px 0px 4px -1px;
+}
+
+.level__current::before, .page__current::before {
+    position: absolute;
+    display: block;
+    content: "\25BD";
+    right: 3px;
+    font-size: 1.8rem;
+    top: 3px;
+}
+
+.level__menu, .page__menu {
+    position: absolute;
+    width: 58px;
+    text-align: center;
+    border: 1px solid black;
+    /* display: none; */
+    background-color: white;
+    z-index: 2;
+    box-shadow: 0px 0px 5px -2px;
+}
+
+.level__menu .menu__item:hover, .page__menu .menu__item:hover {
+    box-sizing: border-box;
+    background-color: lightgrey;
+    cursor: pointer;
+}
+
+.menu__page{
+    margin-left: 15px;
+}
+
+.active {
+    background-color: darkgray;
+}
+
+.tips {
+    display: flex;
+}
+.tip__button {
+    width: 32px;
+    height: 32px;
+    background-color: darkslateblue;
+    margin-left: 10px;
+    background-size: 25px 25px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.tip__button:hover {
+    background-color: rebeccapurple;
+    cursor: pointer;
+}
+
+.pushed {
+    background-color: purple;
+}
+
+.autosound {
+    background-image: url('../img/icons/sound_white.png');
+}
+
+.translate {
+    background-image: url('../img/icons/text_white.svg');
+}
+
+.audio {
+    background-image: url('../img/icons/music_note.svg');
+}
+
+.picture{
+    background-image: url('../img/icons/image_white.svg');
+}
+
+.sound__block{
+    margin-top: 30px;
+}
+.sound__icon{
+    margin: 0 auto;
+    background-image: url('../img/icons/sound.png');
+    width: 40px;
+    height: 40px;
+    background-size: 30px 30px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.translation__block{
+    text-align: center;
+    margin-top: 10px;
+    font-size: 18px;
+}
+
+.phrases {
+    margin-top: 20px;
+}
+
+.phrase {
+    display: flex;
+    flex-direction: row;
+    line-height: 30px; 
+}
+
+.number {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 1px solid black;
+    text-align: center;
+    box-shadow: 0px 0px 4px -2px;
+    line-height: 34px; 
+}
+
+.phrase__words {
+    margin-left: 10px;
+    display: flex;
+    justify-content: stretch;
+    flex-direction: row;
+    width: calc(100% - 40px);
+    box-shadow: 0px 0px 4px -2px;  
+    border: 1px solid black;
+    border-bottom: none;
+}
+
+.phrase:last-child .phrase__words{
+    border-bottom: 1px solid black;
+}
+
+.phrase__word{
+    text-align: center;
+    padding: 5px 10px;
+    flex-grow: 1;
+    border-right: 1px solid rgb(156, 144, 144);
+    position: relative;
+}
+
+.phrase__word::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 14px;
+    right: -14px;
+    width: 14px;
+    height: 12px;
+    border: 1px solid black;
+    border-left-color: transparent;
+    border-radius: 50%;
+}
+
+.phrase__word:last-child{
+    border-right: none; 
+}
+
+.phrase__word:last-child::after{
+    display: none;
+}
+.number__current {
+    color: red;
+}
+
+.empty{
+    background-color: lightgray;
+}
+
+.task{
+    margin-top: 30px;
+    margin-left: 45px;
+}
+
+.task__words{
+    display: flex;
+    justify-content: stretch;
+    flex-direction: row;
+    width: 100%
+}
+
+.task__word{
+    border: 1px solid black;
+    border-right: none;
+    text-align: center;
+    padding: 5px 10px; 
+    line-height: 30px;
+    flex-grow: 1;
+}
+
+.task__word:last-child{
+    border-right: 1px solid black;
+}
+
+.game__buttons {
+    margin: 30px auto;
+    display: flex;
+    justify-content: center;
+}
+
+.game__button{ 
+    background-color: darkslateblue;
+    color: white;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    margin: 0 10px;
+}
+
+.game__button:hover{
+    background-color: rebeccapurple;
+    cursor: pointer;
+}
+
+.hidden {
+    display: none;
+}
+
+

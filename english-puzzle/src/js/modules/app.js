@@ -1,6 +1,14 @@
 import LoginController from '../controllers/LoginController';
 import LoginModel from '../models/LoginModel';
 import LoginView from '../views/LoginView';
+
+import StartController from '../controllers/StartController';
+import StartView from '../views/StartView';
+
+import GameController from '../controllers/GameController';
+import GameModel from '../models/GameModel';
+import GameView from '../views/GameView';
+
 // import ApiHelper from './apiHelper';
 // import dummyImg from '../../img/bg1.jpg'; // для webpack
 
@@ -9,26 +17,81 @@ export default class App {
     this.appConfig = appConfig;
     this.apiConfig = apiConfig;
     this.currentPage = null;
+    this.user = null;
+    this.token = null;
+    this.level = null;
+    this.page = null;
   }
 
   init() {
-    this.loadPage('login');
+    this.loadDefaults();
+    console.log('app init user', this.user);
+    console.log('app init token', this.token);
+    // this.loadPage('login'); // РАСКОММЕНТИТЬ!!!
+    this.loadPage('game'); // РАСКОММЕНТИТЬ!!!
+
   }
 
   loadPage(pageName) { // роутинг (загрузка переданной страницы)
+    let container = this.appConfig.containers.siteContainer;
+
     let controller = null;
-    switch(pageName) {
+
+    let controllerConfig = null;
+    let viewConfig = null;
+    let modelConfig = null;
+
+    let apiConfig = null;
+
+    switch (pageName) {
       case 'login':
-        const container = this.appConfig.containers.siteContainer;
-        const viewConfig = this.appConfig.pages.login.viewConfig;
-        const modelConfig = this.appConfig.pages.login.modelConfig;
-        const apiConfig = this.apiConfig;
+        if (this.user && this.token) {
+          this.loadPage('start');
+          return;
+        }
+        controllerConfig = this.appConfig.pages.login.controllerConfig;
+        modelConfig = this.appConfig.pages.login.modelConfig;
+        viewConfig = this.appConfig.pages.login.viewConfig;
+        apiConfig = this.apiConfig;
         controller = new LoginController( // создать контроллер страницы входа
-          new LoginModel(modelConfig, apiConfig), 
+          new LoginModel(modelConfig, apiConfig),
           new LoginView(container, viewConfig)
         );
         // подписать приложение на событие "Пользователь авторизован"
-        controller.events.subscribe('userIsLogged', this); 
+        controller.events.subscribe(controllerConfig.events.logUser, this);
+        break;
+
+      case 'start':
+        if (!this.user || !this.token) {
+          this.loadPage('login');
+          return;
+        }
+        controllerConfig = this.appConfig.pages.start.controllerConfig;
+        viewConfig = this.appConfig.pages.start.viewConfig;
+        controller = new StartController(null, new StartView(container, viewConfig));
+        // подписать приложение на нажатие кнопки "Start"
+        controller.events.subscribe(controllerConfig.events.startClicked, this);
+        break;
+
+      case 'game':
+        if (!this.user || !this.token) {
+          this.loadPage('login');
+          return;
+        }
+        
+        controllerConfig = Object.assign(this.appConfig.pages.game.controllerConfig, {
+          level: this.level,
+          page: this.page,
+        });
+        modelConfig = this.appConfig.pages.game.modelConfig;
+        viewConfig = this.appConfig.pages.game.viewConfig;
+        controller = new GameController(
+          new GameModel(modelConfig),
+          new GameView(container, viewConfig),
+          controllerConfig
+        );
+        // controller.events.subscribe(controllerConfig.events.startClicked, this);
+
         break;
 
     }
@@ -37,11 +100,72 @@ export default class App {
 
   }
 
-  update(data) {
-    console.log('user is logged: ', data);
-    console.log('user will be redirect to start page!');
+  handleEvent(event, payLoad) {
+    const handlerFunc = this.appConfig.eventHandlers[event];
+    this[handlerFunc](payLoad);
   }
- 
+
+  logUser = (data) => {
+    // const { userId: { id: user }, token } = data;
+    const { userId: user, token } = data; // поменяли сигнатуры
+
+    this.user = user;
+    this.token = token;
+    console.log('data', data);
+    this.saveUserToLocalStorage();
+    this.loadPage('start');
+  }
+
+  startClicked = () => {
+    this.loadPage('game');
+  }
+
+  loadDefaults() {
+    let userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'))
+    if (!userSettings) {
+      userSettings = {
+        user: null,
+        token: null,
+        level: 0,
+        page: 0,
+      };
+
+      localStorage.setItem('dsEnglishPuzzleData', JSON.stringify(userSettings));
+    }
+    console.log('userSettings', userSettings);
+    this.user = userSettings.user;
+    this.token = userSettings.token;
+    this.level = userSettings.level;
+    this.page = userSettings.page;
+  }
+
+  saveUserToLocalStorage() {
+    const userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'))
+    userSettings.user = this.user;
+    userSettings.token = this.token;
+    localStorage.setItem('dsEnglishPuzzleData', JSON.stringify(userSettings));
+  }
+
+  saveLevelToLocalStorage() {
+    const userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'))
+    userSettings.level = this.level;
+    localStorage.setItem('dsEnglishPuzzleData', JSON.stringify(userSettings));
+  }
+
+  savePageToLocalStorage() {
+    const userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'))
+    userSettings.page = this.page;
+    localStorage.setItem('dsEnglishPuzzleData', JSON.stringify(userSettings));
+  }
+
+  // update(data) {
+  //   console.log('user is logged: ', data);
+  //   this.user = data.userId.id;
+  //   this.userToken = data.token;
+
+  //   this.loadPage('start');
+  // }
+
 }
 
 // export default class App {

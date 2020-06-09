@@ -11,7 +11,7 @@ import '../css/login.css';
 import '../css/start.css';
 import '../css/game.css';
 
-const app = new App(
+const app = new App( // РАСКОММЕНТИТЬ!!!!
   appConfig.obj,
   apiConfig.obj
 );

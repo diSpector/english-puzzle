@@ -36,7 +36,7 @@ export default class LoginView extends View {
     apiErrorBlock.innerText = errorText;
   }
 
-  getTemplate() {
+  getTemplate(params = {}) {
     return `
     <div class="login">
       <div class="form">

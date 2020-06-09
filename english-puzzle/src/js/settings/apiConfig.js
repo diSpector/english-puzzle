@@ -15,7 +15,13 @@ export default {
           action: 'users',
           method: 'POST',
         },
-      }
+      },
+      startPage: {
+        
+      },
+      gamePage: {
+        
+      },
     }
     // yaTranslateApiUrl: {
     //   url: 'https://translate.yandex.net/api/v1.5/tr.json/translate?',

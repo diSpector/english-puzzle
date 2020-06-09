@@ -3,11 +3,22 @@ export default {
     containers: {
       siteContainer: '.container',
     },
+    eventHandlers: {
+      userIsLogin: 'logUser',
+      userIsLogout: 'logOutUser',
+      startClicked: 'startClicked',
+
+    },
     pages: {
       login: {
         controller: 'LoginController',
         model: 'LoginModel',
         view: 'LoginView',
+        controllerConfig: {
+          events: {
+            logUser: 'userIsLogin',
+          },
+        },
         viewConfig: {
           loginButton: '.login .login__button .button__login',
           registerButton: '.login .register__button .button__register',
@@ -16,7 +27,6 @@ export default {
           emailErrorBlock: '.email.input__error',
           passErrorBlock: '.password.input__error',
           apiErrorBlock: '.input__error.register__error',
-          // apiErrorBlock: '.input__error.login__error',
         },
         modelConfig: {
           errors: {
@@ -29,8 +39,39 @@ export default {
           }
         },
       },
-      start: {},
-      game: {},
+      start: {
+        controller: 'StartController',
+        model: 'StartModel',
+        view: 'StartView',
+        controllerConfig: {
+          events: {
+            startClicked: 'startClicked',
+          },
+        },
+        viewConfig: {
+          startButton: '.start .start__block .button__start',
+        },
+      },
+      game: {
+        controller: 'GameController',
+        model: 'GameModel',
+        view: 'GameView',
+        controllerConfig: {
+          events: {
+            startClicked: 'startClicked',
+          },
+          maxLevels: 6,
+          maxPages: 30,
+        },
+        modelConfig: {
+          wordsUrl: 'https://afternoon-falls-25894.herokuapp.com/words?',
+          // maxLevels: 20,
+          // maxPages: 30,
+        },
+        viewConfig: {
+          startButton: '.start .start__block .button__start',
+        },
+      },
       stat: {},
     }
 

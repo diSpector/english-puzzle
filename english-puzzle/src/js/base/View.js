@@ -3,18 +3,19 @@ export default class View {
     this.container = container;
   }
 
-  init() {
-    this.render();
+  init(params = {}) {
+    this.render(params);
   }
 
-  render() {
-    const template = this.getTemplate();
+  render(params = {}) {
+    const template = this.getTemplate(params);
     const container = document.querySelector(this.container);
-    container.innerHtml = ''; 
+    // console.log('container', container);
+    container.innerHtml = '';
     container.insertAdjacentHTML('afterbegin', template);
   }
 
-  getTemplate() {
+  getTemplate(params = {}) {
     return '';
   }
 

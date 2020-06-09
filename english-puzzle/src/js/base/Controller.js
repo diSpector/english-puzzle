@@ -8,7 +8,7 @@ export default class Controller {
 
   }
 
-  init() {
+  init(params = {}) {
     console.log('hello from controller');
   }
 

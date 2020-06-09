@@ -16,7 +16,7 @@ export default class EventEmitter {
   notify(eventName, data) { // оповестить всех о событии
     this._listeners.forEach((list) => {
       if (list.eventName === eventName) {
-        list.listener.update(data);
+        list.listener.handleEvent(eventName, data);
       }
     })
   }
