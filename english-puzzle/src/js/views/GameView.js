@@ -3,6 +3,8 @@ import MenuLevel from '../components/MenuLevel';
 import MenuPage from '../components/MenuPage';
 import Tips from '../components/Tips';
 import Words from '../components/Words';
+import Task from '../components/Task';
+import GameButtons from '../components/GameButtons';
 
 export default class GameView extends View {
   constructor(container, components, config) {
@@ -15,6 +17,7 @@ export default class GameView extends View {
     console.log('paramsp', params);
     return `
         <div class="game">
+          <div class="game__background"></div>
           <div class="field">
             <div class="menu">
               <div class="controls">
@@ -29,13 +32,15 @@ export default class GameView extends View {
             <div class="translation__block">
                 Женщина любит кататься на велосипеде
             </div>
-            ${Words.render(params.words)}
+            ${Words.render(params.words, params.events)}
+            ${Task.render(params.words.shuffledWord)}
+            ${GameButtons.render(params.buttons)}
           </div>
         </div>
     `;
   }
 
-  handleMouse (handler) { // клик на меню (level/page)
+  handleMouseMenus (handler) { // клик на меню (level/page)
     const levCur = document.querySelector('.level__current');
     const levMenu = document.querySelector('.level__menu');
     const pageCur = document.querySelector('.page__current');
@@ -65,6 +70,55 @@ export default class GameView extends View {
       handler(target.dataset.page, 'page')
     });
   }
+
+  handleMouseTask (handlerTask) { // клик на слово в задании и в раунде
+    const taskSelector = document.querySelector('.task .task__words');
+    const allWordsInTask = document.querySelectorAll('.task .task__words .task__word');
+    taskSelector.addEventListener('click', ({target}) => {
+      if (!target.classList.contains('task__word')) {
+        return;
+      }
+      handlerTask({clickedWord: target, allWords : allWordsInTask}, 'task');
+    });
+
+    const roundSelector = document.querySelector('.phrase__words.empty');
+    const allWordsInRound = document.querySelectorAll('.phrase__words.empty .phrase__word');
+    roundSelector.addEventListener('click', ({target}) => {
+      if (roundSelector.classList.contains('round__done')){
+        return;
+      }
+      if (!target.classList.contains('phrase__word')) {
+        return;
+      }
+      handlerTask({clickedWord: target, allWords : allWordsInTask}, 'round');
+    });
+  }
+
+  handleMouseCheck(handlerCheck) { // клик на кнопке "Check"
+    const buttonCheck = document.querySelector('.game__button.check');
+    const allWordsInRound = document.querySelectorAll('.phrase__words.empty .phrase__word');
+    
+    buttonCheck.addEventListener('click', () => {
+      handlerCheck(allWordsInRound);
+    });
+  }
+
+  handleMouseIdk(handlerIdk) { // клик по кнопке "I don't know"
+    const buttonIdk = document.querySelector('.game__button.idk');
+    const allWordsInTask = document.querySelectorAll('.task .task__words .task__word');
+
+    buttonIdk.addEventListener('click', () => {
+      handlerIdk();
+    });
+  }
+
+  handleMouseCont(handlerCont) { // клик по кнопке "Continue"
+  const buttonCont = document.querySelector('.game__button.cont');
+
+  buttonCont.addEventListener('click', () => {
+    handlerCont();
+  });
+}
 
   clearGame() {
     const gameField = document.querySelector('.container');

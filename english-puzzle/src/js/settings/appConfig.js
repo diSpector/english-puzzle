@@ -65,6 +65,7 @@ export default {
         },
         modelConfig: {
           wordsUrl: 'https://afternoon-falls-25894.herokuapp.com/words?',
+          wordsCountUrl: 'https://afternoon-falls-25894.herokuapp.com/words/count?',
           // maxLevels: 20,
           // maxPages: 30,
         },
