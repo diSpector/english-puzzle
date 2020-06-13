@@ -33,6 +33,33 @@ body {
     /* padding: 40px 90px; */
 }
 
+.logout {
+    display: flex;
+    justify-content: flex-end;
+    color: black;
+    margin-bottom: 20px;
+    font-size: 2.0rem;
+}
+
+.logout__button {
+    width: 55px;
+    height: 50px;
+    text-align: center;
+    border-radius: 7px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-size: 40px 40px;
+    background-position-y: 7px;
+    background-position-x: 10px;
+    background-color: white;
+    background-image: url('../img/icons/logout.png');
+}
+
+.logout__button:hover{
+    cursor: pointer;
+    box-shadow: 0px 0px 10px 2px blueviolet;
+}
+
 /* .login {
     background-image: url('../img/back_login.png');
     background-size: cover;

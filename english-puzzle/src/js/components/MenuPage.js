@@ -1,5 +1,4 @@
 export default class MenuPage {
-
   static render(params) {
     return `
       <div class="menu__page">
@@ -8,9 +7,8 @@ export default class MenuPage {
             <div class="page__current">${params.current + 1}</div>
             <div class="page__menu dropdown__menu hidden">
               ${params.pages.map((page) => `
-              <div class="menu__item ${page.current ? `active` : ``}"
-                data-page="${page.id}">${page.id + 1}</div>`
-              ).join('')}
+              <div class="menu__item ${page.current ? 'active' : ''}"
+                data-page="${page.id}">${page.id + 1}</div>`).join('')}
             </div>
           </div>
         </div>

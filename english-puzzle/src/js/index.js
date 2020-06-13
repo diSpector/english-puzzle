@@ -13,7 +13,7 @@ import '../css/game.css';
 
 const app = new App( // РАСКОММЕНТИТЬ!!!!
   appConfig.obj,
-  apiConfig.obj
+  apiConfig.obj,
 );
 app.init();
 

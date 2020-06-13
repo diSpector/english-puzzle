@@ -7,6 +7,7 @@ export default class StartController extends Controller {
   }
 
   init() {
+    this.view.clear();
     this.view.init();
     this.view.processStart(this.processStart);
   }

@@ -3,8 +3,8 @@ export default {
     backendApi: {
       url: 'https://afternoon-falls-25894.herokuapp.com/',
       defaultHeaders: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
       },
       loginPage: {
         login: {
@@ -17,16 +17,43 @@ export default {
         },
       },
       startPage: {
-        
+
       },
       gamePage: {
-        
+
       },
-    }
+      general: {
+        statistics: {
+          load: {
+            action: 'users/$id/statistics',
+            method: 'GET',
+            headers: {
+              'Authorization': 'Bearer $token',
+            },
+          },
+          save: {
+            action: 'users/$id/statistics',
+            method: 'PUT',
+            headers: {
+              'Authorization': 'Bearer $token',
+            },
+          },
+          // action: 'user/$id/statistics',
+          // method: 'GET',
+          // headers: {
+          //   'Authorization': 'Bearer $token',
+          // },
+        },
+
+        },
+      }
+    },
+  };
     // yaTranslateApiUrl: {
     //   url: 'https://translate.yandex.net/api/v1.5/tr.json/translate?',
     //   params: {
-    //     key: 'trnsl.1.1.20200322T155651Z.de98a60e6a99185e.089aea4237b51c6db082c966f27a7895cd1e8b44&',
+    //     key: 'trnsl.1.1.20200322T155651Z
+    // .de98a60e6a99185e.089aea4237b51c6db082c966f27a7895cd1e8b44&',
     //   },
     // },
 
@@ -78,7 +105,9 @@ export default {
 
     // mapbox: {
     //   url: '',
-    //   token: 'pk.eyJ1IjoidGVzdGluZ2FwaXMiLCJhIjoiY2thbGx6dnRnMHZ5ZjMwdGR5MXVmYzdtaSJ9.laJHrx2lp_5xUzjuM75N-Q',
+    //   token:
+    // 'pk.eyJ1IjoidGV
+    // zdGluZ2FwaXMiLCJhIjoiY2thbGx6dnRnMHZ5ZjMwdGR5MXVmYzdtaSJ9.laJHrx2lp_5xUzjuM75N-Q',
 
     // },
 
@@ -92,5 +121,5 @@ export default {
     // },
 
     // proxyApi: 'https://cors-anywhere.herokuapp.com/',
-  },
-};
+//   },
+// };

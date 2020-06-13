@@ -1,5 +1,1 @@
-export default class Model {
-  constructor() {
-  }
-
-}
+export default class Model {}

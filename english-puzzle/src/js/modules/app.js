@@ -21,19 +21,21 @@ export default class App {
     this.token = null;
     this.level = null;
     this.page = null;
+    this.round = null;
   }
 
-  init() {
+  async init() {
+    // localStorage.clear();
     this.loadDefaults();
+    await this.loadStatistics(); //
     console.log('app init user', this.user);
     console.log('app init token', this.token);
     // this.loadPage('login'); // РАСКОММЕНТИТЬ!!!
-    this.loadPage('game'); // РАСКОММЕНТИТЬ!!!
-
+    this.loadPage('game'); // РАСКОММЕНТИТЬ!!
   }
 
   loadPage(pageName) { // роутинг (загрузка переданной страницы)
-    let container = this.appConfig.containers.siteContainer;
+    const container = this.appConfig.containers.siteContainer;
 
     let controller = null;
 
@@ -55,7 +57,7 @@ export default class App {
         apiConfig = this.apiConfig;
         controller = new LoginController( // создать контроллер страницы входа
           new LoginModel(modelConfig, apiConfig),
-          new LoginView(container, viewConfig)
+          new LoginView(container, viewConfig),
         );
         // подписать приложение на событие "Пользователь авторизован"
         controller.events.subscribe(controllerConfig.events.logUser, this);
@@ -78,26 +80,30 @@ export default class App {
           this.loadPage('login');
           return;
         }
-        
+
         controllerConfig = Object.assign(this.appConfig.pages.game.controllerConfig, {
           level: this.level,
           page: this.page,
+          round: this.round,
         });
         modelConfig = this.appConfig.pages.game.modelConfig;
         viewConfig = this.appConfig.pages.game.viewConfig;
         controller = new GameController(
           new GameModel(modelConfig),
           new GameView(container, viewConfig),
-          controllerConfig
+          controllerConfig,
         );
-        // controller.events.subscribe(controllerConfig.events.startClicked, this);
-
+        // подписать приложение на сохранение статистики после перехода на след. раунд
+        controller.events.subscribe(controllerConfig.events.saveStats, this);
+        controller.events.subscribe(controllerConfig.events.logOutUser, this);
         break;
 
+      default:
+        this.loadPage('start');
+        break;
     }
 
     controller.init();
-
   }
 
   handleEvent(event, payLoad) {
@@ -105,7 +111,7 @@ export default class App {
     this[handlerFunc](payLoad);
   }
 
-  logUser = (data) => {
+  logUser = (data) => { // залогинить пользователя
     // const { userId: { id: user }, token } = data;
     const { userId: user, token } = data; // поменяли сигнатуры
 
@@ -116,18 +122,28 @@ export default class App {
     this.loadPage('start');
   }
 
+  logOutUser = (isNeedRedirect = false) => { // разлогинить пользователя
+    this.user = null;
+    this.token = null;
+    this.saveUserToLocalStorage();
+    if (isNeedRedirect) {
+      this.loadPage('login');
+    }
+  }
+
   startClicked = () => {
     this.loadPage('game');
   }
 
   loadDefaults() {
-    let userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'))
+    let userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'));
     if (!userSettings) {
       userSettings = {
         user: null,
         token: null,
         level: 0,
         page: 0,
+        round: 0,
       };
 
       localStorage.setItem('dsEnglishPuzzleData', JSON.stringify(userSettings));
@@ -137,24 +153,135 @@ export default class App {
     this.token = userSettings.token;
     this.level = userSettings.level;
     this.page = userSettings.page;
+    this.round = userSettings.round;
+  }
+
+  async loadStatistics() {
+    if (!this.user || !this.token) {
+      return;
+    }
+    const statsRequestObj = this.getStatsRequestObj('load');
+    console.log('statsRequestObj', statsRequestObj);
+    const { url, method, headers } = statsRequestObj;
+
+    try {
+      const rawResponse = await fetch(`${url}`, {
+        method,
+        headers,
+      });
+      const status = rawResponse.status;
+      console.log('status', status);
+      if (status !== 200) {
+        if (status === 404) { // статистики по пользователю еще нет
+          console.log('there arent stats for user');
+          return;
+        }
+        if (status === 401) { // токен/пользователь неправильные или устарели
+          console.log('incorrect credentials');
+          this.logOutUser();
+          return;
+        }
+      }
+      // ошибок нет, статистика получена
+      const content = await rawResponse.json();
+      console.log('content', content);
+      const { optional: { level, page, round } } = content;
+      this.level = level;
+      this.page = page;
+      this.round = round;
+      return;
+    } catch (e) {
+      console.log('error in backend while fetch stats', e);
+      return;
+    }
+  }
+
+  /**
+   * @param { newLevel, newPage, newRound } payload 
+   */
+  async saveStatistics(payload) {
+    if (!this.user || !this.token) {
+      return;
+    }
+    const statsRequestObj = this.getStatsRequestObj('save');
+    console.log('statsRequestObj', statsRequestObj);
+    const { url, method, headers } = statsRequestObj;
+
+    const { newLevel: lev, newPage: pg, newRound: rnd } = payload;
+
+    try {
+      const rawResponse = await fetch(`${url}`, {
+        method,
+        headers,
+        body: JSON.stringify({
+          optional: { level: lev, page: pg, round: rnd }
+        })
+      });
+      const status = rawResponse.status;
+      console.log('status', status);
+      console.log('rawResponse', rawResponse);
+      if (status !== 200) {
+        if (status === 400) { // ошибка в запросе
+          console.log('Bad request, stats not saved');
+          return;
+        }
+        if (status === 401) { // токен/пользователь неправильные или устарели
+          console.log('incorrect credentials');
+          this.logOutUser();
+          return;
+        }
+      }
+      const content = await rawResponse.json();
+      console.log('content', content);
+      return;
+    } catch (e) {
+      console.log('error in backend while put stats');
+      return;
+    }
+  }
+
+  // получить объект для запроса (url, action, header)
+  getStatsRequestObj(meth = 'load') {
+    const backendApiParams = this.apiConfig.backendApi;
+    const statsApiParams = backendApiParams.general.statistics[meth];
+
+    const { action, method, headers } = statsApiParams;
+
+    const url = `${backendApiParams.url}${action}`.replace(/\$id/, this.user);
+    const replacedHeaders = headers['Authorization'].replace(/\$token/, this.token);
+
+    return {
+      url,
+      method,
+      headers:
+        Object.assign(backendApiParams.defaultHeaders, {
+          'Authorization': replacedHeaders
+        })
+    };
   }
 
   saveUserToLocalStorage() {
-    const userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'))
+    const userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'));
     userSettings.user = this.user;
     userSettings.token = this.token;
     localStorage.setItem('dsEnglishPuzzleData', JSON.stringify(userSettings));
   }
 
   saveLevelToLocalStorage() {
-    const userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'))
+    const userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'));
     userSettings.level = this.level;
     localStorage.setItem('dsEnglishPuzzleData', JSON.stringify(userSettings));
   }
 
   savePageToLocalStorage() {
-    const userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'))
+    const userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'));
     userSettings.page = this.page;
+    localStorage.setItem('dsEnglishPuzzleData', JSON.stringify(userSettings));
+  }
+
+  saveRoundToLocalStorage() {
+    const userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'));
+    userSettings.round = this.round;
     localStorage.setItem('dsEnglishPuzzleData', JSON.stringify(userSettings));
   }
 
@@ -165,7 +292,6 @@ export default class App {
 
   //   this.loadPage('start');
   // }
-
 }
 
 // export default class App {
@@ -311,9 +437,9 @@ export default class App {
 //   getWeatherText() { // подготовить текст для озвучивания погоды
 //     const serviceText = this.translateConfig.translations.serviceText[this.lang];
 //     const text = `
-//       ${serviceText.overall} ${this.state.city}! 
-//       ${this.state.weatherToday.temp} ${serviceText.deg}!  
-//       ${serviceText.feels} ${this.state.weatherToday.feels} ${serviceText.deg}! 
+//       ${serviceText.overall} ${this.state.city}!
+//       ${this.state.weatherToday.temp} ${serviceText.deg}!
+//       ${serviceText.feels} ${this.state.weatherToday.feels} ${serviceText.deg}!
 //       ${serviceText.wind} ${this.state.weatherToday.wind}!
 //       ${serviceText.humidity} ${this.state.weatherToday.humidity} ${serviceText.percent}!
 //       ${this.state.weatherToday.description}!
@@ -428,11 +554,12 @@ export default class App {
 //     searchButton.innerText = this.translateConfig.translations.searchButtonText[newLang];
 //   }
 
-//   updateHtml(htmlObj, newValue) { // проставить активные стили при изменении языка/единиц измер.
+//   updateHtml(htmlObj, newValue) { // проставить активные стили
 //     const container = document.querySelector(htmlObj.container);
 //     const items = container.querySelectorAll(htmlObj.spec);
 //     items.forEach((item) => item.classList.remove('active'));
-//     const choosedItem = document.querySelector(`${htmlObj.spec}[data-${htmlObj.data}="${newValue}"`);
+//     const choosedItem
+// = document.querySelector(`${htmlObj.spec}[data-${htmlObj.data}="${newValue}"`);
 
 //     choosedItem.classList.add('active');
 
@@ -477,12 +604,15 @@ export default class App {
 //   reloadPic = async () => { // обновить фоновую картинку
 //     const reloadIcon = document.querySelector(this.appConfig.reloadIcon);
 //     reloadIcon.classList.add('rotated');
-//     const tags = (this.state.tags) ? this.state.tags : this.appConfig.defaults.tags;
+//     const tags = (this.state.tags)
+// ? this.state.tags
+// : this.appConfig.defaults.tags;
 //     const newImg = await this.getFlickrImgByTags(tags);
 //     this.state.backImg = newImg;
 //     const body = document.querySelector('body');
 //     if (this.state.backImg) {
-//       body.style.backgroundImage = `${this.appConfig.opacityStyle}, url('${this.state.backImg}')`;
+//       body.style.backgroundImage
+// = `${this.appConfig.opacityStyle}, url('${this.state.backImg}')`;
 //     }
 //     reloadIcon.classList.remove('rotated');
 //   }
@@ -725,7 +855,7 @@ export default class App {
 //     }
 //   }
 
-//   async getWeatherDailyForCity(searchObj) { // получить данные о погоде на несколько дней в городе
+//   async getWeatherDailyForCity(searchObj) { // получить данные о погоде на несколько дней
 //     const weatherApiHelper = new ApiHelper(this.apiConfig.weatherDaily, {
 //       lang: this.lang, units: this.units, ...searchObj,
 //     });
@@ -925,13 +1055,14 @@ export default class App {
 //     let date = dateObj.toLocaleString(locale, dateFormatObj).replace(',', '');
 //     const time = dateObj.toLocaleString(locale, timeFormatObj);
 
-//     if (this.lang === 'be') { // немного костыльный перевод месяца/дня недели на бел.яз
+//     if (this.lang === 'be') { // немного костыльный перевод месяца/дня недели
 //       const corDateObj = (new Date((new Date()).toLocaleDateString('en-US', { timeZone })));
 //       const weekDay = corDateObj.getDay();
 //       const monthNum = corDateObj.getMonth();
 //       const dateNum = corDateObj.getDate();
 //       const translateConfig = this.translateConfig.translations;
-//       date = `${translateConfig.weekdays.short[weekDay]} ${dateNum} ${translateConfig.monthes.full[monthNum]}`;
+//       date = `${translateConfig.weekdays.short[weekDay]}
+// ${dateNum} ${translateConfig.monthes.full[monthNum]}`;
 //     }
 
 //     return { date, time, dateObj };
@@ -939,7 +1070,8 @@ export default class App {
 
 //   renderAllData = () => { // наполнить контейнеры значениями из state
 //     const inputSearch = document.querySelector(this.appConfig.searchInput);
-//     inputSearch.placeholder = this.translateConfig.translations.placeholderText[this.lang];
+//     inputSearch.placeholder
+// = this.translateConfig.translations.placeholderText[this.lang];
 
 //     const errorContainer = document.querySelector(this.appConfig.errorContainer);
 //     errorContainer.classList.add('hidden');
@@ -948,7 +1080,8 @@ export default class App {
 
 //     const body = document.querySelector('body');
 //     if (this.state.backImg) {
-//       body.style.backgroundImage = `${this.appConfig.opacityStyle}, url('${this.state.backImg}')`;
+//       body.style.backgroundImage =
+// `${this.appConfig.opacityStyle}, url('${this.state.backImg}')`;
 //     }
 
 //     const cityContainer = document.querySelector(this.appConfig.cityContainer);
@@ -970,10 +1103,12 @@ export default class App {
 //     feelsContainer.innerText = `${serviceText.feels}: ${this.state.weatherToday.feels}°`;
 
 //     const windContainer = document.querySelector(this.appConfig.windContainer);
-//     windContainer.innerText = `${serviceText.wind}: ${this.state.weatherToday.wind} ${serviceText.vel[this.units]}`;
+//     windContainer.innerText = `${serviceText.wind}: ${this.state.weatherToday.wind}
+// ${serviceText.vel[this.units]}`;
 
 //     const humidityContainer = document.querySelector(this.appConfig.humidityContainer);
-//     humidityContainer.innerText = `${serviceText.humidity}: ${this.state.weatherToday.humidity}%`;
+//     humidityContainer.innerText = `${serviceText.humidity}:
+// ${this.state.weatherToday.humidity}%`;
 
 //     const weatherTomorrowContainers = document.querySelectorAll(this.appConfig.dayContainer);
 //     weatherTomorrowContainers.forEach((item, index) => {

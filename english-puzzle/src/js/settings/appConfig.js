@@ -5,9 +5,9 @@ export default {
     },
     eventHandlers: {
       userIsLogin: 'logUser',
-      userIsLogout: 'logOutUser',
+      logOutUser: 'logOutUser',
       startClicked: 'startClicked',
-
+      saveStatistics: 'saveStatistics',
     },
     pages: {
       login: {
@@ -35,8 +35,10 @@ export default {
           },
           regExp: {
             email: /^[-.\w]+@(?:[a-z\d]{2,}\.)+[a-z]{2,6}$/,
-            pass: /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[\+\-_@\$\!\%\*\?\&#\.,;\:\[\]\{\}])[\S]{8,}$/,
-          }
+            pass: /^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[+\-_@$!%*?&#.,;:[\]{}])[\S]{8,}$/,
+            // pass:
+            // ^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[\+\-_@\$\!\%\*\?\&#\.,;\:\[\]\{\}])[\S]{8,}$/
+          },
         },
       },
       start: {
@@ -58,7 +60,8 @@ export default {
         view: 'GameView',
         controllerConfig: {
           events: {
-            startClicked: 'startClicked',
+            saveStats: 'saveStatistics',
+            logOutUser: 'logOutUser',
           },
           maxLevels: 6,
           maxPages: 30,
@@ -66,17 +69,16 @@ export default {
         modelConfig: {
           wordsUrl: 'https://afternoon-falls-25894.herokuapp.com/words?',
           wordsCountUrl: 'https://afternoon-falls-25894.herokuapp.com/words/count?',
-          // maxLevels: 20,
-          // maxPages: 30,
+          wordsSoundUrl: 'https://raw.githubusercontent.com/dispector/rslang-data/master/data/',
         },
         viewConfig: {
           startButton: '.start .start__block .button__start',
         },
       },
       stat: {},
-    }
+    },
 
-  }
+  },
   // star : {},
   // game,
   // stat

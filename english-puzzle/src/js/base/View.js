@@ -15,8 +15,12 @@ export default class View {
     container.insertAdjacentHTML('afterbegin', template);
   }
 
-  getTemplate(params = {}) {
+  getTemplate() {
     return '';
   }
 
+  clear() {
+    const container = document.querySelector('.container');
+    container.innerHTML = '';
+  }
 }

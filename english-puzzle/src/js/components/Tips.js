@@ -1,5 +1,4 @@
 export default class MenuPage {
-
   static render() {
     return `
     <div class="tips">
@@ -11,4 +10,3 @@ export default class MenuPage {
     `;
   }
 }
-

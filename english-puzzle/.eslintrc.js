@@ -18,6 +18,7 @@ module.exports = {
     sourceType: 'module',
   },
   rules: {
+    "no-param-reassign": 0,
     "no-shadow": "off",
     "import/extensions": [
       "error",

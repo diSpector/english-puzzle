@@ -6,29 +6,32 @@ export default class LoginController extends Controller {
     this.config = config;
   }
 
-  init(params = {}) {
-    this.view.init(); 
+  init() {
+    this.view.clear();
+    this.view.init();
     this.view.processAuth(this.processLogin, this.processRegister);
   }
 
-  processLogin = async ({emailVal: email, passVal: password}) => {
+  processLogin = async ({ emailVal: email, passVal: password }) => {
     if (this.model.load(email, password) && this.model.validate(this.processValidationErrors)) {
-      const loggedUser = await this.model.loginUser({email, password}, this.processApiErrors); 
+      const loggedUser = await this.model.loginUser({ email, password }, this.processApiErrors);
       console.log('loggedUser', loggedUser);
       if (loggedUser) {
         this.events.notify('userIsLogin', loggedUser);
       }
-    } 
+    }
   }
 
-  processRegister = async ({emailVal: email, passVal: password}) => {
+  processRegister = async ({ emailVal: email, passVal: password }) => {
     if (this.model.load(email, password) && this.model.validate(this.processValidationErrors)) {
-      const newUser = await this.model.createUser({email, password}, this.processApiErrors); 
-      const loggedUser = (newUser) ? await this.model.loginUser({email, password}, this.processApiErrors) : null;
+      const newUser = await this.model.createUser({ email, password }, this.processApiErrors);
+      const loggedUser = (newUser)
+        ? await this.model.loginUser({ email, password }, this.processApiErrors)
+        : null;
       if (loggedUser) {
         this.events.notify('userIsLogin', loggedUser);
       }
-    } 
+    }
   }
 
   processValidationErrors = (errors) => {
@@ -38,5 +41,4 @@ export default class LoginController extends Controller {
   processApiErrors = (errorText) => {
     this.view.showApiError(errorText);
   }
-  
 }

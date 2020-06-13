@@ -13,7 +13,7 @@ export default class StartView extends View {
     });
   }
 
-  getTemplate(params = {}) {
+  getTemplate() {
     return `
     <div class="start">
         <div class="start__block">

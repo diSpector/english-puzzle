@@ -1,5 +1,4 @@
 export default class GameButtons {
-
   static render(buttons) {
     return `
       <div class="game__buttons">
@@ -13,4 +12,4 @@ export default class GameButtons {
 }
 
 
-  // ${params.map((phrase, i) => Word.render(phrase.textExample.split(' '), i)).join('')}
+// ${params.map((phrase, i) => Word.render(phrase.textExample.split(' '), i)).join('')}

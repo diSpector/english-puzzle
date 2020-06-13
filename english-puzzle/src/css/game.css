@@ -157,6 +157,12 @@
     background-repeat: no-repeat;
 }
 
+.sound__icon:hover {
+    cursor: pointer;
+    box-shadow: 0px 0px 4px -2px;
+
+}
+
 .translation__block{
     text-align: center;
     margin-top: 10px;
@@ -204,7 +210,8 @@
     text-align: center;
     padding: 5px 10px;
     flex-grow: 1;
-    border-right: 1px solid rgb(156, 144, 144);
+    /* border-right: 1px solid rgb(156, 144, 144); */
+    border-right: 1px solid lightgray;
     position: relative;
 }
 
@@ -336,6 +343,15 @@
 .game__button.idk:hover {
     background-color: purple;
 }
+
+.game__button.cont{
+    background-color: green;
+}
+
+.game__button.cont:hover {
+    background-color: darkgreen;
+}
+
 .game__button:hover{
     background-color: rebeccapurple;
     cursor: pointer;

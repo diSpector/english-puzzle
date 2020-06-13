@@ -5,11 +5,9 @@ export default class Controller {
     this.model = model;
     this.view = view;
     this.events = new EventEmitter();
-
   }
 
-  init(params = {}) {
+  init() {
     console.log('hello from controller');
   }
-
 }
