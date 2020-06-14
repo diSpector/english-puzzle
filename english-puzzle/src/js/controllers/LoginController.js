@@ -15,7 +15,6 @@ export default class LoginController extends Controller {
   processLogin = async ({ emailVal: email, passVal: password }) => {
     if (this.model.load(email, password) && this.model.validate(this.processValidationErrors)) {
       const loggedUser = await this.model.loginUser({ email, password }, this.processApiErrors);
-      console.log('loggedUser', loggedUser);
       if (loggedUser) {
         this.events.notify('userIsLogin', loggedUser);
       }

@@ -10,7 +10,6 @@ export default class View {
   render(params = {}) {
     const template = this.getTemplate(params);
     const container = document.querySelector(this.container);
-    // console.log('container', container);
     container.innerHtml = '';
     container.insertAdjacentHTML('afterbegin', template);
   }

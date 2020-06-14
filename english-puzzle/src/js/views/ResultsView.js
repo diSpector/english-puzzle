@@ -10,7 +10,6 @@ export default class ResultsView extends View {
   }
 
   getTemplate(words) {
-    console.log('results view words', words);
     return `
     <div class="results">
     <div class="results__background"></div>
@@ -48,6 +47,14 @@ export default class ResultsView extends View {
 
     buttonCont.addEventListener('click', () => {
       handlerCont();
+    });
+  }
+
+  handleMouseGlobal(handlerGlobal) { // клик по кнопке "Global Stat"
+    const buttonCont = document.querySelector('.results__button.results__global');
+
+    buttonCont.addEventListener('click', () => {
+      handlerGlobal();
     });
   }
 }

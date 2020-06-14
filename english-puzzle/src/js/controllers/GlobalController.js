@@ -1,6 +1,6 @@
 import Controller from '../base/Controller';
 
-export default class ResultsController extends Controller {
+export default class GlobalController extends Controller {
   constructor(model, view, config) {
     super(model, view);
     this.config = config;
@@ -9,24 +9,12 @@ export default class ResultsController extends Controller {
   init() {
     this.view.clear();
     this.view.init(this.config.roundStats);
-    this.view.handleSoundClick(this.handleSound);
     this.view.handleMouseLogout(this.processLogoutClick);
     this.view.handleMouseCont(this.processContClick);
-    // this.view.handleMouseGlobal(this.processGlobalClick);
-  }
-
-  processGlobalClick = () => {
-    this.events.notify('goToGlobal');
   }
 
   processContClick = () => {
-    this.events.notify('clearRound', true);
     this.events.notify('goBackToGame', true);
-  }
-
-  handleSound = (elem) => {
-    const { roundStats } = this.config;
-    this.model.processSound(elem, roundStats);
   }
 
   processLogoutClick = () => { // нажатие на кнопку "Logout"

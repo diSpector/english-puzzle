@@ -75,8 +75,6 @@ export default class GameModel extends Model {
   getColorChecking(words) {
     const currentCorrectArr = words.currentWord.textExample.split(' ');
     const roundWordsArr = words.roundWord.map((el) => el.text);
-    console.log('currentCorrectArr', currentCorrectArr);
-    console.log('roundWordsArr', roundWordsArr);
     const {
       solvedWords, currentWord, shuffledWord, allWords,
     } = words;
@@ -84,7 +82,6 @@ export default class GameModel extends Model {
       const colorBack = (currentCorrectArr[i] === roundWordsArr[i]) ? 'lightgreen' : 'lightcoral';
       return Object.assign(el, { color: colorBack });
     });
-    console.log('checkedWord', checkedWord);
     return {
       solvedWords,
       currentWord,
@@ -131,7 +128,6 @@ group=${group}
   `);
 
     const words = await wordsPromise.json();
-    console.log('words', words);
 
     const tenWords = this.getTenWords(words);
     return tenWords;

@@ -19,6 +19,7 @@ module.exports = {
   },
   rules: {
     "no-param-reassign": 0,
+    "no-useless-return": 0,
     "no-shadow": "off",
     "import/extensions": [
       "error",

@@ -17,7 +17,6 @@ export default class GameView extends View {
   }
 
   getTemplate(params = {}) {
-    console.log('paramsp', params);
     return `
         <div class="game">
           <div class="game__background"></div>

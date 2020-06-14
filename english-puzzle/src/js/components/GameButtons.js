@@ -10,6 +10,3 @@ export default class GameButtons {
         `;
   }
 }
-
-
-// ${params.map((phrase, i) => Word.render(phrase.textExample.split(' '), i)).join('')}

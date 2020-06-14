@@ -13,6 +13,8 @@ export default {
       saveRoundWord: 'saveRoundWordToLocalStorage',
       clearRound: 'clearRoundWordFromLocalStorage',
       goBackToGame: 'goToGame',
+      goToGlobal: 'goToGlobal',
+      saveCompleteRound: 'saveCompleteRoundToBackend',
     },
     pages: {
       login: {
@@ -93,10 +95,27 @@ export default {
             logOutUser: 'logOutUser',
             contClicked: 'goBackToGame',
             clearRound: 'clearRound',
+            goToGlobal: 'goToGlobal',
           },
         },
         modelConfig: {
           wordsSoundUrl: 'https://raw.githubusercontent.com/dispector/rslang-data/master/data/',
+        },
+        viewConfig: {
+        },
+      },
+
+      global: {
+        controller: 'GlobalController',
+        model: 'GlobalModel',
+        view: 'GlobalView',
+        controllerConfig: {
+          events: {
+            contClicked: 'goBackToGame',
+          },
+        },
+        modelConfig: {
+          // wordsSoundUrl: 'https://raw.githubusercontent.com/dispector/rslang-data/master/data/',
         },
         viewConfig: {
         },

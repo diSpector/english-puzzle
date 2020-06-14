@@ -96,6 +96,7 @@ span.count__iknow{
     color: white;
     text-align: center;
     font-size: 1.8rem;
+    margin-left: 20px;
 }
 
 .results__button:hover{
@@ -108,4 +109,12 @@ span.count__iknow{
 
 .results__continue:hover{
     background-color: rebeccapurple;
+}
+
+.results__global {
+    background-color: deepskyblue;
+}
+
+.results__global:hover{
+    background-color: blue;
 }

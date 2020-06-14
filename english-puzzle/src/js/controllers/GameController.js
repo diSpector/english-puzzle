@@ -32,8 +32,6 @@ export default class GameController extends Controller {
     const tipsMenuConfig = this.config.tips;
     const tipsRoundConfig = this.config.tips; // при первом запуске - настройки по умолчанию
 
-    // console.log('this.config: ', this.config);
-
     // получить список уровней (1-6) и страниц для уровней (1-10) с учетом активного
     const pagesCount = await this.model.getPagesForLevel(currentLev);
     const levels = this.model.getElementsFromMax(currentLev, this.config.maxLevels);
@@ -41,12 +39,10 @@ export default class GameController extends Controller {
 
     // получить 10 слов для конкретного уровня и страницы
     const words = await this.model.getWords(currentLev, currentPage);
-    console.log('words', words);
 
     /** @var { solvedWords, currentWord, shuffledWord, roundWord, allWords } wordsConfig */
     const wordsConfig = this.model.getRoundConfig(words, currentRound);
     const buttonsConfig = this.model.getButtonsConfig('newRoundBegin');
-    console.log('initial words config', wordsConfig);
 
     this.setState({
       words: wordsConfig,
@@ -135,7 +131,6 @@ export default class GameController extends Controller {
   }
 
   processContClick = async () => {
-    console.log('this.state', this.state);
     const {
       words, events, levels, pages, rounds, tipsMenuConfig,
     } = this.state;
