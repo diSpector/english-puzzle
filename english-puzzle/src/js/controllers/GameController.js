@@ -13,6 +13,8 @@ export default class GameController extends Controller {
           rounds: { current },
           buttons: { idk : bool, check : bool, cont : bool, res: bool},
           events: [],
+          tipsMenuConfig: {autosound: bool, translate: bool, audio: bool, picture: bool }
+          tipsRoundConfig: {autosound: bool, translate: bool, audio: bool, picture: bool },
         }
     */
   }
@@ -26,6 +28,9 @@ export default class GameController extends Controller {
     const currentLev = this.config.level;
     const currentPage = this.config.page;
     const currentRound = this.config.round;
+
+    const tipsMenuConfig = this.config.tips;
+    const tipsRoundConfig = this.config.tips; // при первом запуске - настройки по умолчанию
 
     // console.log('this.config: ', this.config);
 
@@ -42,6 +47,7 @@ export default class GameController extends Controller {
     const wordsConfig = this.model.getRoundConfig(words, currentRound);
     const buttonsConfig = this.model.getButtonsConfig('newRoundBegin');
     console.log('initial words config', wordsConfig);
+
     this.setState({
       words: wordsConfig,
       levels: { levels, current: currentLev },
@@ -49,16 +55,13 @@ export default class GameController extends Controller {
       rounds: { current: currentRound },
       buttons: buttonsConfig,
       events: [],
+      tipsMenuConfig,
+      tipsRoundConfig,
     });
-
-    // console.log('this.state', this.state);
-
     this.renderView();
   }
 
   renderView() {
-    // console.log('this.state', this.state);
-
     this.view.clearGame();
     this.view.init(this.state);
     this.view.handleMouseMenus(this.processMenuClick);
@@ -66,14 +69,49 @@ export default class GameController extends Controller {
     this.view.handleMouseCheck(this.processCheckClick);
     this.view.handleMouseIdk(this.processIdkClick);
     this.view.handleMouseCont(this.processContClick);
+    this.view.handleMouseRes(this.processResClick);
     this.view.handleMouseLogout(this.processLogoutClick);
     this.view.handleMouseSoundIcon(this.processSoundIconClick);
+    this.view.handleMouseTips(this.processTipsClick);
+  }
+
+  processResClick = () => { // нажатие на кнопку "Results"
+    const { levels, pages, rounds } = this.state;
+    const newLevelPageRound = this.model.getLevelPageRoundConfig(levels, pages, rounds);
+
+    const newLevel = newLevelPageRound.levels.current;
+    const newPage = newLevelPageRound.pages.current;
+    const newRound = newLevelPageRound.rounds.current;
+
+    this.events.notify('saveStatistics', { newLevel, newPage, newRound });
+    this.events.notify('goToResults', true);
+  }
+
+  processTipsClick = (data) => { // клик по подсказкам
+    const tipsMenuConfig = { ...this.state.tipsMenuConfig };
+    const tipsMenuConfigUpdated = this.model.getTipsMenuConfig(data, tipsMenuConfig);
+
+    this.events.notify('saveTips', tipsMenuConfigUpdated);
+    this.updateState({
+      tipsMenuConfig: tipsMenuConfigUpdated,
+    });
+    this.renderView();
   }
 
   processSoundIconClick = () => {
-    const { words : { currentWord }} = this.state;
+    const { words: { currentWord } } = this.state;
     this.model.playSound(currentWord);
-    console.log('currentWord', currentWord);
+    this.highlightSoundIcon();
+  }
+
+  // подсветить иконку звука
+  // не используется toggle, чтобы стиль не показался после того, как пользователь
+  // его принудительно выключит, перейдя на другой раунд
+  highlightSoundIcon() {
+    this.view.showPlaying();
+    setTimeout(() => {
+      this.view.hidePlaying();
+    }, 5000);
   }
 
   processLogoutClick = () => { // нажатие на кнопку "Logout"
@@ -82,21 +120,24 @@ export default class GameController extends Controller {
 
   /**
    * @param integer data - новый выбранный уровень (level) или страницы (page)
-   * @param 'level|page' key - маркер выбора 
-   */ 
+   * @param 'level|page' key - маркер выбора
+   */
   processMenuClick = (data, key) => { // клик по меню (этапу/странице)
     if (this.config[key] === parseInt(data, 10)) { // ничего не делать, если выбор тот же
       return;
     }
     this.config[key] = parseInt(data, 10);
     this.config.round = 0; // сбросить раунд при переключении
+
+    this.events.notify('clearRound'); // сбросить статистику раунда при переключении
+
     this.init();
   }
 
   processContClick = async () => {
     console.log('this.state', this.state);
     const {
-      words, events, levels, pages, rounds,
+      words, events, levels, pages, rounds, tipsMenuConfig,
     } = this.state;
     const prevPage = pages.current;
     const prevLevel = levels.current;
@@ -113,13 +154,14 @@ export default class GameController extends Controller {
       ? await this.model.getWords(newLevel, newPage)
       : words.allWords;
 
-    // const buttonEvent = isNewLevelOrPage ? 'pageIsOver' : 'newRoundBegin';
-    console.log('newWords', newWords);
     const wordsConfig = this.model.getRoundConfig(newWords, newRound);
-    // const buttonsConfig = this.model.getButtonsConfig(buttonEvent);
     const buttonsConfig = this.model.getButtonsConfig('newRoundBegin');
 
     events.length = 0; // cбросить все стили при переходе на след. раунд
+
+    if (isNewLevelOrPage) { // если переход на новую страницу/уровень
+      this.events.notify('clearRound'); // сбросить статистику раунда при переключении
+    }
 
     this.events.notify('saveStatistics', { newLevel, newPage, newRound });
     this.updateState({
@@ -127,20 +169,23 @@ export default class GameController extends Controller {
       events,
       buttons: buttonsConfig,
       ...newLevelPageRound,
+      tipsRoundConfig: tipsMenuConfig, // обновить отобр. подсказок в зависимости от кнопок
     });
     this.renderView();
   }
 
   processIdkClick = () => { // клик по кнопке "I don't know"
-    const { words, events } = this.state;
+    const { words, events, tipsMenuConfig } = this.state;
     const wordsConfig = this.model.processIdkClick(words);
 
     const isSolvedLastWord = (words.solvedWords.length === 9);
     const buttonEvent = isSolvedLastWord ? 'pageIsOver' : 'IDontKnowClick';
     const buttonsConfig = this.model.getButtonsConfig(buttonEvent);
-    // const buttonsConfig = this.model.getButtonsConfig('IDontKnowClick');
 
     events.push('roundIsOver'); // чтобы запретить редактировать собранное слово через стили
+
+    const wordForSave = this.model.getWordObjForSave(words.currentWord, 'fail');
+    this.events.notify('saveRoundWord', wordForSave);
 
     this.updateState({
       words: wordsConfig,
@@ -148,6 +193,11 @@ export default class GameController extends Controller {
       buttons: buttonsConfig,
     });
     this.renderView();
+
+    if (tipsMenuConfig.autosound) {
+      this.model.playSound(words.currentWord);
+      this.highlightSoundIcon();
+    }
   }
 
   /**
@@ -155,20 +205,28 @@ export default class GameController extends Controller {
    * @param {NodeList[]} allWordsInRound
    */
   processCheckClick = (allWordsInRound) => {
-    const { words, events } = this.state;
-    console.log('words from state, after check',words )
+    const { words, events, tipsMenuConfig } = this.state;
     const isWordCorrect = this.model.isRoundWordsCorrect(words, allWordsInRound);
     const isSolvedLastWord = (isWordCorrect && words.solvedWords.length === 9);
 
     const wordsConfig = this.model.getColorChecking(words, allWordsInRound);
-    // const buttonEvent = (isWordCorrect) ? 'roundSuccess' : 'roundFails';
-    const buttonEvent = (isWordCorrect) 
-      ? (isSolvedLastWord ? 'pageIsOver' : 'roundSuccess') 
-      : 'roundFails';
+    // const buttonEvent = (isWordCorrect)
+    //   ? (isSolvedLastWord ? 'pageIsOver' : 'roundSuccess')
+    //   : 'roundFails';
+
+    // let buttonEvent = (isWordCorrect) ? 'roundSuccess' : 'roundFails';
+    // buttonEvent = (isWordCorrect && isSolvedLastWord) ? 'pageIsOver' : buttonEvent;
+    let buttonEvent = 'roundFails';
+    if (isWordCorrect) {
+      buttonEvent = (isSolvedLastWord) ? 'pageIsOver' : 'roundSuccess';
+    }
+
     const buttonsConfig = this.model.getButtonsConfig(buttonEvent);
 
     if (isWordCorrect) {
       events.push('roundIsOver'); // чтобы запретить редактировать собранное слово через стили
+      const wordForSave = this.model.getWordObjForSave(words.currentWord);
+      this.events.notify('saveRoundWord', wordForSave);
     }
 
     this.updateState({
@@ -177,6 +235,12 @@ export default class GameController extends Controller {
       events,
     });
     this.renderView();
+
+    // проигрывание звука после обновления вьюхи
+    if (isWordCorrect && tipsMenuConfig.autosound) {
+      this.model.playSound(words.currentWord);
+      this.highlightSoundIcon();
+    }
   }
 
   /**

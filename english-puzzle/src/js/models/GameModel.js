@@ -309,9 +309,25 @@ group=${group}
   }
 
   playSound(currentWord) { // озвучить предложение
-    // const url = 'https://raw.githubusercontent.com/diSpector/rslang-data/master/data/01_0001_example.mp3';
     const url = `${this.config.wordsSoundUrl}${currentWord.audioExample.substring(6)}`;
     const audio = new Audio(url);
     audio.play();
+  }
+
+  // обработать нажатие на кнопку с подсказкой
+  getTipsMenuConfig(htmlTip, tipsConfig) {
+    const tipButton = htmlTip.dataset.tip;
+    tipsConfig[tipButton] = !tipsConfig[tipButton];
+    return tipsConfig;
+  }
+
+  getWordObjForSave(word, keyName = 'success') { // подготовить объект предложения для сохр
+    return {
+      word: {
+        text: word.textExample,
+        audio: word.audioExample.substring(6),
+      },
+      key: keyName,
+    };
   }
 }

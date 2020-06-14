@@ -10,6 +10,7 @@ import '../css/style.css';
 import '../css/login.css';
 import '../css/start.css';
 import '../css/game.css';
+import '../css/results.css';
 
 const app = new App( // РАСКОММЕНТИТЬ!!!!
   appConfig.obj,

@@ -22,8 +22,3 @@ export default class RoundWord {
       `;
   }
 }
-
-//
-
-// ${roundWord.map((el) => `<div class="phrase__word">
-// ${(el) ? el.text : ''}

@@ -7,6 +7,7 @@ import Task from '../components/Task';
 import GameButtons from '../components/GameButtons';
 import LogoutButton from '../components/LogoutButton';
 import Translation from '../components/Translation';
+import SoundBlock from '../components/SoundBlock';
 
 export default class GameView extends View {
   constructor(container, components, config) {
@@ -27,12 +28,10 @@ export default class GameView extends View {
                 ${MenuLevel.render(params.levels)}
                 ${MenuPage.render(params.pages)}
               </div>
-              ${Tips.render()}
+              ${Tips.render(params.tipsMenuConfig)}
             </div>
-            <div class="sound__block">
-              <div class="sound__icon"></div>
-            </div>
-            ${Translation.render(params.words.currentWord)}
+            ${SoundBlock.render(params.tipsRoundConfig.audio)}
+            ${Translation.render(params.words.currentWord, params.tipsRoundConfig.translate)}
             ${Words.render(params.words, params.events)}
             ${Task.render(params.words.shuffledWord)}
             ${GameButtons.render(params.buttons)}
@@ -121,11 +120,11 @@ export default class GameView extends View {
     });
   }
 
-  handleMouseLogout(handlerLogout) {// клик по кнопке "Logout"
+  handleMouseLogout(handlerLogout) { // клик по кнопке "Logout"
     const logOutButton = document.querySelector('.logout .logout__button');
     logOutButton.addEventListener('click', () => {
       handlerLogout();
-    })
+    });
   }
 
   clearGame() {
@@ -135,42 +134,44 @@ export default class GameView extends View {
 
   handleMouseSoundIcon(handlerSoundIcon) {
     const soundIconButton = document.querySelector('.sound__icon');
+    if (soundIconButton.classList.contains('disabled')) { //
+      return;
+    }
+
     soundIconButton.addEventListener('click', () => {
       handlerSoundIcon();
     });
   }
 
-  //   processAuth(handlerLogin, handlerPass) {
-  //     const loginButton = document.querySelector(this.config.loginButton);
-  //     loginButton.addEventListener('click', () => {
-  //       this.handleAuth(handlerLogin);
-  //     });
+  handleMouseTips(handlerTipsClick) {
+    const tipsContainer = document.querySelector('.tips');
+    tipsContainer.addEventListener('click', ({ target }) => {
+      if (!target.classList.contains('tip__button')) {
+        return;
+      }
+      handlerTipsClick(target);
+    });
+  }
 
-  //     const registerButton = document.querySelector(this.config.registerButton);
-  //     registerButton.addEventListener('click', () => {
-  //       this.handleAuth(handlerPass);
-  //     });
-  //   }
+  handleMouseRes(handlerResults) {
+    const buttonRes = document.querySelector('.game__button.res');
 
-  //   handleAuth(handler) {
-  //     const emailVal = document.querySelector(this.config.emailInput).value;
-  //     const passVal = document.querySelector(this.config.passInput).value;
-  //     handler({ emailVal, passVal });
-  //   }
+    buttonRes.addEventListener('click', () => {
+      handlerResults();
+    });
+  }
 
-  //   showErrors(errorsObj) {
-  //     const emailErrorBlock = document.querySelector(this.config.emailErrorBlock);
-  //     const passErrorBlock = document.querySelector(this.config.passErrorBlock);
-  //     emailErrorBlock.innerText = ('email' in errorsObj) ? errorsObj.email : '';
-  //     passErrorBlock.innerText = ('pass' in errorsObj) ? errorsObj.pass : '';
-  //   }
+  showPlaying() {
+    const soundIconButton = document.querySelector('.sound__icon');
+    if (!soundIconButton.classList.contains('playing')) {
+      soundIconButton.classList.add('playing');
+    }
+  }
 
-  //   showApiError(errorText) {
-  //     const apiErrorBlock = document.querySelector(this.config.apiErrorBlock);
-  //     apiErrorBlock.innerText = errorText;
-  //   }
-
-  // init(levObj) {
-  //   super.init(levObj);
-  // }
+  hidePlaying() {
+    const soundIconButton = document.querySelector('.sound__icon');
+    if (soundIconButton.classList.contains('playing')) {
+      soundIconButton.classList.remove('playing');
+    }
+  }
 }

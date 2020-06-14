@@ -9,6 +9,10 @@ import GameController from '../controllers/GameController';
 import GameModel from '../models/GameModel';
 import GameView from '../views/GameView';
 
+import ResultsController from '../controllers/ResultsController';
+import ResultsModel from '../models/ResultsModel';
+import ResultsView from '../views/ResultsView';
+
 // import ApiHelper from './apiHelper';
 // import dummyImg from '../../img/bg1.jpg'; // для webpack
 
@@ -22,19 +26,18 @@ export default class App {
     this.level = null;
     this.page = null;
     this.round = null;
+    this.roundStats = null;
   }
 
   async init() {
     // localStorage.clear();
     this.loadDefaults();
-    await this.loadStatistics(); //
-    console.log('app init user', this.user);
-    console.log('app init token', this.token);
+    // this.loadPage('results'); // УДАЛИТЬ!!
+    this.loadPage('game'); // УДАЛИТЬ!!
     // this.loadPage('login'); // РАСКОММЕНТИТЬ!!!
-    this.loadPage('game'); // РАСКОММЕНТИТЬ!!
   }
 
-  loadPage(pageName) { // роутинг (загрузка переданной страницы)
+  async loadPage(pageName) { // роутинг (загрузка переданной страницы)
     const container = this.appConfig.containers.siteContainer;
 
     let controller = null;
@@ -68,6 +71,9 @@ export default class App {
           this.loadPage('login');
           return;
         }
+
+        // await this.loadStatistics();
+
         controllerConfig = this.appConfig.pages.start.controllerConfig;
         viewConfig = this.appConfig.pages.start.viewConfig;
         controller = new StartController(null, new StartView(container, viewConfig));
@@ -81,10 +87,13 @@ export default class App {
           return;
         }
 
+        await this.loadStatistics();
+
         controllerConfig = Object.assign(this.appConfig.pages.game.controllerConfig, {
           level: this.level,
           page: this.page,
           round: this.round,
+          tips: this.tips,
         });
         modelConfig = this.appConfig.pages.game.modelConfig;
         viewConfig = this.appConfig.pages.game.viewConfig;
@@ -95,7 +104,40 @@ export default class App {
         );
         // подписать приложение на сохранение статистики после перехода на след. раунд
         controller.events.subscribe(controllerConfig.events.saveStats, this);
+        controller.events.subscribe(controllerConfig.events.saveTips, this);
         controller.events.subscribe(controllerConfig.events.logOutUser, this);
+        controller.events.subscribe(controllerConfig.events.resClicked, this);
+        controller.events.subscribe(controllerConfig.events.saveRound, this);
+        controller.events.subscribe(controllerConfig.events.clearRound, this);
+
+        break;
+
+      case 'results':
+        if (!this.user || !this.token) {
+          this.loadPage('login');
+          return;
+        }
+
+        // await this.loadStatistics();
+        // const roundStats = this.getRoundStatsFromLocalStorage();
+
+        controllerConfig = Object.assign(
+          this.appConfig.pages.results.controllerConfig, {
+            roundStats: this.getRoundStatsFromLocalStorage(),
+          },
+        );
+        modelConfig = this.appConfig.pages.results.modelConfig;
+        viewConfig = this.appConfig.pages.results.viewConfig;
+        controller = new ResultsController(
+          new ResultsModel(modelConfig),
+          new ResultsView(container, viewConfig),
+          controllerConfig,
+        );
+
+        controller.events.subscribe(controllerConfig.events.logOutUser, this);
+        controller.events.subscribe(controllerConfig.events.contClicked, this);
+        controller.events.subscribe(controllerConfig.events.clearRound, this);
+
         break;
 
       default:
@@ -117,22 +159,29 @@ export default class App {
 
     this.user = user;
     this.token = token;
-    console.log('data', data);
     this.saveUserToLocalStorage();
     this.loadPage('start');
   }
 
-  logOutUser = (isNeedRedirect = false) => { // разлогинить пользователя
+  logOutUser = async (isNeedRedirect = false) => { // разлогинить пользователя
     this.user = null;
     this.token = null;
     this.saveUserToLocalStorage();
     if (isNeedRedirect) {
-      this.loadPage('login');
+      await this.init();
     }
   }
 
   startClicked = () => {
     this.loadPage('game');
+  }
+
+  goToGame = () => {
+    this.loadPage('game');
+  }
+
+  goToResults = () => {
+    this.loadPage('results');
   }
 
   loadDefaults() {
@@ -144,6 +193,16 @@ export default class App {
         level: 0,
         page: 0,
         round: 0,
+        tips: {
+          autosound: true,
+          translate: true,
+          audio: true,
+          picture: false,
+        },
+        roundStats: {
+          success: [],
+          fail: [],
+        },
       };
 
       localStorage.setItem('dsEnglishPuzzleData', JSON.stringify(userSettings));
@@ -154,6 +213,8 @@ export default class App {
     this.level = userSettings.level;
     this.page = userSettings.page;
     this.round = userSettings.round;
+    this.tips = userSettings.tips;
+    this.roundStats = userSettings.roundStats;
   }
 
   async loadStatistics() {
@@ -169,8 +230,7 @@ export default class App {
         method,
         headers,
       });
-      const status = rawResponse.status;
-      console.log('status', status);
+      const { status } = rawResponse;
       if (status !== 200) {
         if (status === 404) { // статистики по пользователю еще нет
           console.log('there arent stats for user');
@@ -184,7 +244,6 @@ export default class App {
       }
       // ошибок нет, статистика получена
       const content = await rawResponse.json();
-      console.log('content', content);
       const { optional: { level, page, round } } = content;
       this.level = level;
       this.page = page;
@@ -192,12 +251,11 @@ export default class App {
       return;
     } catch (e) {
       console.log('error in backend while fetch stats', e);
-      return;
     }
   }
 
   /**
-   * @param { newLevel, newPage, newRound } payload 
+   * @param { newLevel, newPage, newRound } payload
    */
   async saveStatistics(payload) {
     if (!this.user || !this.token) {
@@ -214,12 +272,11 @@ export default class App {
         method,
         headers,
         body: JSON.stringify({
-          optional: { level: lev, page: pg, round: rnd }
-        })
+          optional: { level: lev, page: pg, round: rnd },
+        }),
       });
-      const status = rawResponse.status;
+      const { status } = rawResponse;
       console.log('status', status);
-      console.log('rawResponse', rawResponse);
       if (status !== 200) {
         if (status === 400) { // ошибка в запросе
           console.log('Bad request, stats not saved');
@@ -236,7 +293,6 @@ export default class App {
       return;
     } catch (e) {
       console.log('error in backend while put stats');
-      return;
     }
   }
 
@@ -248,15 +304,15 @@ export default class App {
     const { action, method, headers } = statsApiParams;
 
     const url = `${backendApiParams.url}${action}`.replace(/\$id/, this.user);
-    const replacedHeaders = headers['Authorization'].replace(/\$token/, this.token);
+    const replacedHeaders = headers.Authorization.replace(/\$token/, this.token);
 
     return {
       url,
       method,
       headers:
         Object.assign(backendApiParams.defaultHeaders, {
-          'Authorization': replacedHeaders
-        })
+          Authorization: replacedHeaders,
+        }),
     };
   }
 
@@ -285,13 +341,33 @@ export default class App {
     localStorage.setItem('dsEnglishPuzzleData', JSON.stringify(userSettings));
   }
 
-  // update(data) {
-  //   console.log('user is logged: ', data);
-  //   this.user = data.userId.id;
-  //   this.userToken = data.token;
+  saveTipsToLocalStorage(tipsObj) {
+    const userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'));
+    userSettings.tips = tipsObj;
+    localStorage.setItem('dsEnglishPuzzleData', JSON.stringify(userSettings));
+  }
 
-  //   this.loadPage('start');
-  // }
+  // записать пройденное предложение в LocalStorage
+  saveRoundWordToLocalStorage(wordObj) {
+    const userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'));
+    const { word, key } = wordObj;
+    userSettings.roundStats[key].push(word);
+    console.log('userSettings', userSettings);
+    localStorage.setItem('dsEnglishPuzzleData', JSON.stringify(userSettings));
+  }
+
+  // удалить все предложения раунда из LocalStorage
+  clearRoundWordFromLocalStorage() {
+    const userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'));
+    userSettings.roundStats.fail.length = 0;
+    userSettings.roundStats.success.length = 0;
+    localStorage.setItem('dsEnglishPuzzleData', JSON.stringify(userSettings));
+  }
+
+  getRoundStatsFromLocalStorage() {
+    const userSettings = JSON.parse(localStorage.getItem('dsEnglishPuzzleData'));
+    return userSettings.roundStats;
+  }
 }
 
 // export default class App {

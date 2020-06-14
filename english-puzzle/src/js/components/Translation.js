@@ -1,11 +1,10 @@
 export default class Translation {
-  static render(params) {
+  static render(word, isTranslate) {
+    console.log('isTranslate', isTranslate);
     return `
     <div class="translation__block">
-      ${params.textExampleTranslate}
+      ${isTranslate ? word.textExampleTranslate : ''}
     </div>
     `;
   }
 }
-
-

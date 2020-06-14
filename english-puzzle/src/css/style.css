@@ -2,7 +2,7 @@
 /* @import '~normalize.css'; */ /* тильда означает, что пакет нужно искать в node_modules */
 /* @import '~@glidejs/glide/dist/css/glide.core.min.css'; glide styles */
 
-/* @import 'animate.css'; */
+@import 'animate.css';
 
 html {
     font-family: 'Montserrat', sans-serif;
